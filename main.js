@@ -17,6 +17,10 @@ const warns = new Map();
 // IDs de configuration
 const GUILD_ID = '1342461852961083472';
 const MANAGER_ROLE_ID = '1391565937227862100'; // ID du rôle Gérant staff
+const COMMUNITY_MANAGER_ROLE_ID = '1415464593521774737'; // ID du rôle Community Manager
+
+// Rôles autorisés à envoyer des liens
+const ALLOWED_LINK_ROLES = [MANAGER_ROLE_ID, COMMUNITY_MANAGER_ROLE_ID];
 
 // Configuration des rôles autorisés à envoyer des liens
 const STAFF_ROLES = ['Gérant', 'Staff', 'Modérateur']; // À adapter avec vos noms de rôles
@@ -27,6 +31,11 @@ const LOGS_CHANNEL_ID = '1383971425509048490';
 // Fonction pour vérifier si l'utilisateur est Gérant staff
 function isManagerStaff(member) {
   return member.roles.cache.has(MANAGER_ROLE_ID);
+}
+
+// Fonction pour vérifier si l'utilisateur peut envoyer des liens
+function canSendLinks(member) {
+  return ALLOWED_LINK_ROLES.some(roleId => member.roles.cache.has(roleId));
 }
 
 // Fonction pour envoyer un log
@@ -112,11 +121,11 @@ client.on('messageCreate', async (message) => {
   const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|discord\.gg\/[^\s]+)/gi;
   
   if (urlRegex.test(message.content)) {
-    // Vérifier si l'utilisateur est staff (en utilisant l'ID du rôle)
-    const isStaff = message.member.roles.cache.has(MANAGER_ROLE_ID);
+    // Vérifier si l'utilisateur est autorisé à envoyer des liens
+    const isAuthorized = canSendLinks(message.member);
 
-    // Si ce n'est pas un staff, supprimer le message
-    if (!isStaff) {
+    // Si ce n'est pas autorisé, supprimer le message
+    if (!isAuthorized) {
       try {
         const user = message.author;
         const targetMember = message.member;
