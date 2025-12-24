@@ -112,10 +112,8 @@ client.on('messageCreate', async (message) => {
   const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|discord\.gg\/[^\s]+)/gi;
   
   if (urlRegex.test(message.content)) {
-    // Vérifier si l'utilisateur est staff
-    const isStaff = message.member.roles.cache.some(role => 
-      STAFF_ROLES.includes(role.name)
-    );
+    // Vérifier si l'utilisateur est staff (en utilisant l'ID du rôle)
+    const isStaff = message.member.roles.cache.has(MANAGER_ROLE_ID);
 
     // Si ce n'est pas un staff, supprimer le message
     if (!isStaff) {
@@ -128,7 +126,11 @@ client.on('messageCreate', async (message) => {
 
         // Mute l'utilisateur pendant 10 minutes
         const muteTime = 10 * 60 * 1000; // 10 minutes en millisecondes
-        await targetMember.timeout(muteTime, 'Lien envoyé sans autorisation');
+        try {
+          await targetMember.timeout(muteTime, 'Lien envoyé sans autorisation');
+        } catch (muteError) {
+          console.log('Impossible de mute l\'utilisateur:', muteError.message);
+        }
 
         // Créer un embed de warning
         const embed = new EmbedBuilder()
